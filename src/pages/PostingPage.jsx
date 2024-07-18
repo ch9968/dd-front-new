@@ -1,35 +1,53 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { postPost } from "../api/post";
 import Button from "../components/common/Button";
 
-const PostingPage = () => {
+const PostingPage = ({ signup, setSignup }) => {
   const navigate = useNavigate();
   const [file, setFile] = useState(null);
+  const [error, setError] = useState("");
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
   };
 
-  const handleSubmit = async (e) => {
+  const PostPost = async (e) => {
     e.preventDefault();
     if (file) {
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("userId", signup.id);
+      formData.append("nickname", signup.nickname);
+      formData.append("password", signup.pw);
+      formData.append("name", signup.name);
+      formData.append(
+        "age",
+        new Date().getFullYear() - new Date(signup.birthdate).getFullYear()
+      );
+      formData.append("gender", signup.gender);
+      formData.append("partnerGender", signup.preferredGender);
+      formData.append("veganState", signup.vegan);
+      signup.hobbies.forEach((hobby) => formData.append("hobby", hobby));
+      formData.append("location", signup.location.join(","));
+      signup.partnerLocation.forEach((location) =>
+        formData.append("partnerLocation", location.join(","))
+      );
 
       try {
         const res = await postPost(formData);
-        console.log("Profile picture upload result:", res);
+        console.log("회원가입 결과", res);
         if (res.status === 201) {
           alert("프로필 사진 업로드 성공!");
           navigate("/");
         }
       } catch (error) {
-        alert("사진 업로드에 실패했습니다. 다시 시도해주세요.");
+        setError("사진 업로드에 실패했습니다. 다시 시도해주세요.");
+        console.error("Error uploading profile data", error);
       }
     } else {
-      alert("사진을 선택해주세요.");
+      setError("사진을 선택해주세요.");
     }
   };
 
@@ -38,7 +56,8 @@ const PostingPage = () => {
       <SContainer>
         <STitle>프로필 설정</STitle>
         <SSubtitle>마음에 드는 사진을 추가해 보세요</SSubtitle>
-        <SForm onSubmit={handleSubmit}>
+        <SForm onSubmit={PostPost}>
+          {error && <SErrorMessage>{error}</SErrorMessage>}
           <SImageContainer>
             <SInputLabel>
               {file ? (
@@ -58,7 +77,7 @@ const PostingPage = () => {
               btnInfo={{
                 text: "프로필 설정 완료",
                 color: "black",
-                onClick: handleSubmit,
+                onClick: PostPost,
               }}
               type="submit"
             />
@@ -150,4 +169,10 @@ const SButtonContainer = styled.div`
   width: 100%;
   display: flex;
   justify-content: center;
+`;
+
+const SErrorMessage = styled.p`
+  color: red;
+  font-size: 14px;
+  margin-bottom: 10px;
 `;

@@ -1,8 +1,8 @@
 import { Routes, Route } from "react-router-dom";
-import usestate from "react";
+import { useState } from "react";
 import styled from "styled-components";
 import React from "react";
-
+import LocationSettingPage from "./pages/LocationSettingPage";
 import StartPage from "./pages/StartPage";
 import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
@@ -13,19 +13,43 @@ import StatusBarComponent from "./components/StatusBar";
 
 const App = () => {
   function getCurrentUserId() {}
-
+  const [signup, setSignup] = useState({
+    userId: "",
+    nickname: "",
+    password: "",
+    name: "",
+    age: "",
+    gender: "",
+    partnerGender: "",
+    veganState: null,
+    hobby: [],
+    location: [],
+    partnerLocation: [],
+  });
   return (
     <AppCont>
       <StatusBarComponent></StatusBarComponent>
       {/* <NavComponent></NavComponent> */}
       <Routes>
         <Route path="/" element={<StartPage />} />
-        <Route path="/signup" element={<SignUpPage />} />
+        <Route
+          path="/signup"
+          element={<SignUpPage signup={signup} setSignup={setSignup} />}
+        />
+        <Route
+          path="/posting"
+          element={<PostingPage signup={signup} setSignup={setSignup} />}
+        />
+        <Route
+          path="/location-setting"
+          element={
+            <LocationSettingPage signup={signup} setSignup={setSignup} />
+          }
+        />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/post" element={<PostingPage />} />
         <Route path="/main/:userId" element={<MainPage />} />
         <Route path="/message" element={<MessagePage />} />
-        {/* <Route path="/matches/:userId" element={<MatchPage />} /> */}
+        <Route path="/location" element={<LocationSettingPage />} />
       </Routes>
     </AppCont>
   );

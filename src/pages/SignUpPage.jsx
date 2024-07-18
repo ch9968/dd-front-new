@@ -1,97 +1,79 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import { postRegister } from "../api/user";
 import Button from "../components/common/Button";
 
-const SignUpPage = () => {
+const veganOptions = [
+  { label: "비건", value: 1 },
+  { label: "락토", value: 2 },
+  { label: "오보", value: 3 },
+  { label: "락토-오보", value: 4 },
+  { label: "페스코", value: 5 },
+  { label: "폴로", value: 6 },
+  { label: "채식 지향", value: 7 },
+];
+
+const SignUpPage = ({ signup, setSignup }) => {
   const navigate = useNavigate();
 
-  const [signup, setSignup] = useState({
-    id: "",
-    pw: "",
-    nickname: "",
-    birthdate: "",
-    gender: "",
-    preferredGender: "",
-    vegan: "",
-    hobbies: [],
-  });
+  const [birthdate, setBirthdate] = useState("");
 
   const onChangeSignup = (e) => {
     const { name, value } = e.target;
-    setSignup({ ...signup, [name]: value });
-  };
-
-  const onChangeHobbies = (e) => {
-    const { value } = e.target;
     setSignup((prev) => ({
       ...prev,
-      hobbies: prev.hobbies.includes(value)
-        ? prev.hobbies.filter((hobby) => hobby !== value)
-        : [...prev.hobbies, value],
+      [name]: value,
+    }));
+    console.log({ signup });
+  };
+
+  const onChangeBirthdate = (e) => {
+    const { value } = e.target;
+    setBirthdate(value);
+    const age = new Date().getFullYear() - new Date(value).getFullYear();
+    setSignup((prev) => ({
+      ...prev,
+      birthdate: value,
+      age: age,
     }));
   };
 
-  const handleSignUpSubmit = async (e) => {
+  const onChangeHobby = (e) => {
+    const { value } = e.target;
+    setSignup((prev) => ({
+      ...prev,
+      hobby: prev.hobby.includes(value)
+        ? prev.hobby.filter((hobby) => hobby !== value)
+        : [...prev.hobby, value],
+    }));
+  };
+
+  const onChangeVegan = (e) => {
+    const { value } = e.target;
+    setSignup((prev) => ({
+      ...prev,
+      veganState: parseInt(value, 10),
+    }));
+  };
+
+  const handleNext = (e) => {
     e.preventDefault();
-    const {
-      id,
-      pw,
-      nickname,
-      birthdate,
-      gender,
-      preferredGender,
-      vegan,
-      hobbies,
-    } = signup;
-    try {
-      const res = await postRegister(
-        id,
-        pw,
-        nickname,
-        birthdate,
-        gender,
-        preferredGender,
-        vegan,
-        hobbies
-      );
-      if (res.status === 200) {
-        alert("회원가입 성공! 로그인을 진행해주세요.");
-        navigate("/login");
-        setSignup({
-          id: "",
-          pw: "",
-          nickname: "",
-          birthdate: "",
-          gender: "",
-          preferredGender: "",
-          vegan: "",
-          hobbies: [],
-        });
-      }
-    } catch (error) {
-      if (error.response && error.response.status === 400) {
-        alert(error.response.data.message);
-      } else {
-        alert("회원가입 중 오류가 발생했습니다. 다시 시도해주세요.");
-      }
-    }
+    navigate("/location-setting");
   };
 
   return (
     <SLayout>
       <SContainer>
         <STitle>회원가입</STitle>
-        <SForm onSubmit={handleSignUpSubmit}>
+        <SForm onSubmit={handleNext}>
           <SContentContainer>
             <SLabel>
               <h2>아이디</h2>
             </SLabel>
             <SInput
               type="text"
-              value={signup.id}
-              name="id"
+              value={signup.userId}
+              name="userId"
               onChange={onChangeSignup}
             />
           </SContentContainer>
@@ -101,8 +83,8 @@ const SignUpPage = () => {
             </SLabel>
             <SInput
               type="password"
-              value={signup.pw}
-              name="pw"
+              value={signup.password}
+              name="password"
               onChange={onChangeSignup}
             />
           </SContentContainer>
@@ -112,9 +94,9 @@ const SignUpPage = () => {
             </SLabel>
             <SInput
               type="date"
-              value={signup.birthdate}
+              value={birthdate}
               name="birthdate"
-              onChange={onChangeSignup}
+              onChange={onChangeBirthdate}
             />
           </SContentContainer>
           <SContentContainer>
@@ -144,21 +126,21 @@ const SignUpPage = () => {
               <h2>선호하는 성별</h2>
             </SLabel>
             <SRadioContainer>
-              {["여성", "남성", "선택 안함"].map((preferredGender) => (
+              {["여성", "남성", "선택 안함"].map((partnerGender) => (
                 <SRadioLabel
-                  key={preferredGender}
+                  key={partnerGender}
                   className={
-                    signup.preferredGender === preferredGender ? "active" : ""
+                    signup.partnerGender === partnerGender ? "active" : ""
                   }
                 >
                   <SRadio
                     type="radio"
-                    value={preferredGender}
-                    name="preferredGender"
-                    checked={signup.preferredGender === preferredGender}
+                    value={partnerGender}
+                    name="partnerGender"
+                    checked={signup.partnerGender === partnerGender}
                     onChange={onChangeSignup}
                   />
-                  {preferredGender}
+                  {partnerGender}
                 </SRadioLabel>
               ))}
             </SRadioContainer>
@@ -170,27 +152,19 @@ const SignUpPage = () => {
               <p>당신은 어떤 타입인가요?</p>
             </SLabel>
             <SRadioContainer>
-              {[
-                "비건",
-                "락토",
-                "오보",
-                "락토-오보",
-                "페스코",
-                "폴로",
-                "채식 지향",
-              ].map((vegan) => (
+              {veganOptions.map((option) => (
                 <SRadioLabel
-                  key={vegan}
-                  className={signup.vegan === vegan ? "active" : ""}
+                  key={option.value}
+                  className={signup.veganState === option.value ? "active" : ""}
                 >
                   <SRadio
                     type="radio"
-                    value={vegan}
-                    name="vegan"
-                    checked={signup.vegan === vegan}
-                    onChange={onChangeSignup}
+                    value={option.value}
+                    name="veganState"
+                    checked={signup.veganState === option.value}
+                    onChange={onChangeVegan}
                   />
-                  {vegan}
+                  {option.label}
                 </SRadioLabel>
               ))}
             </SRadioContainer>
@@ -212,13 +186,13 @@ const SignUpPage = () => {
               ].map((hobby) => (
                 <SCheckboxLabel
                   key={hobby}
-                  className={signup.hobbies.includes(hobby) ? "active" : ""}
+                  className={signup.hobby.includes(hobby) ? "active" : ""}
                 >
                   <SCheckbox
                     type="checkbox"
                     value={hobby}
-                    checked={signup.hobbies.includes(hobby)}
-                    onChange={onChangeHobbies}
+                    checked={signup.hobby.includes(hobby)}
+                    onChange={onChangeHobby}
                     style={{ fontSize: "12px" }}
                   />
                   {hobby}
@@ -229,9 +203,9 @@ const SignUpPage = () => {
           <SButtonContainer>
             <Button
               btnInfo={{
-                text: "회원가입",
+                text: "다음 단계",
                 color: "black",
-                onClick: handleSignUpSubmit,
+                onClick: handleNext,
               }}
               type="submit"
             />
