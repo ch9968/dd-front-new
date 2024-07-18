@@ -1,0 +1,10 @@
+@font-face {
+  font-family: "AppleSDGothicNeoEB00";
+  src: url("./AppleSDGothicNeoEB00.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  font-family: "AppleSDGothicNeoEB00", sans-serif;
+}
